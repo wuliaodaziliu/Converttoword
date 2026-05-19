@@ -19,14 +19,6 @@ jobs:
         with:
           python-version: '3.11'
 
-      - name: Download Poppler
-        run: |
-          $version = "poppler-24.08.0-0"
-          $url = "https://github.com/oschwartz10612/poppler-windows/releases/download/v24.08.0-0.0/$version.zip"
-          curl -L $url -o poppler.zip
-          Expand-Archive poppler.zip -DestinationPath .
-          Remove-Item poppler.zip
-
       - name: Install Python deps
         run: |
           pip install -r requirements.txt
