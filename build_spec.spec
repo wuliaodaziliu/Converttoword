@@ -32,6 +32,9 @@ pyz = PYZ(a.pure, a.zipped_data, cipher=block_cipher)
 exe = EXE(
     pyz,
     a.scripts,
+    a.binaries,
+    a.zipfiles,
+    a.datas,
     [],
     name="PDFToWordConverter",
     debug=False,
@@ -47,16 +50,4 @@ exe = EXE(
     codesign_identity=None,
     entitlements_file=None,
     icon="icon.ico" if os.path.exists("icon.ico") else None,
-    exclude_binaries=True,
-)
-
-coll = COLLECT(
-    exe,
-    a.binaries,
-    a.zipfiles,
-    a.datas,
-    strip=False,
-    upx=False,
-    upx_exclude=[],
-    name="PDFToWordConverter",
 )

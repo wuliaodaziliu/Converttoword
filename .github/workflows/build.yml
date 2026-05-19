@@ -39,29 +39,22 @@ jobs:
 
           $releaseDir = "release"
           New-Item -ItemType Directory -Force -Path $releaseDir | Out-Null
-          $bundleName = "PDFToWordConverter-windows-x64"
-          $bundleRoot = Join-Path $releaseDir $bundleName
-          if (Test-Path $bundleRoot) {
-            Remove-Item $bundleRoot -Recurse -Force
-          }
+          $releaseExe = Join-Path $releaseDir "PDFToWordConverter.exe"
+          Copy-Item -Path $exe.FullName -Destination $releaseExe -Force
 
-          Copy-Item -Path $exe.Directory.FullName -Destination $bundleRoot -Recurse -Force
-          $zipPath = Join-Path $releaseDir "$bundleName.zip"
-          Compress-Archive -Path $bundleRoot -DestinationPath $zipPath -Force
+          $hash = Get-FileHash -Algorithm SHA256 $releaseExe
+          "PDFToWordConverter.exe  " + $hash.Hash | Out-File -FilePath "$releaseExe.sha256" -Encoding ascii
 
-          $hash = Get-FileHash -Algorithm SHA256 $zipPath
-          $hash.Path + "  " + $hash.Hash | Out-File -FilePath "$zipPath.sha256" -Encoding ascii
-
-      - name: Upload release zip
+      - name: Upload release exe
         uses: actions/upload-artifact@v4
         with:
-          name: PDFToWordConverter-release
-          path: release/PDFToWordConverter-windows-x64.zip
+          name: PDFToWordConverter-exe
+          path: release/PDFToWordConverter.exe
           retention-days: 30
 
       - name: Upload sha256
         uses: actions/upload-artifact@v4
         with:
-          name: PDFToWordConverter-release-sha256
-          path: release/PDFToWordConverter-windows-x64.zip.sha256
+          name: PDFToWordConverter-exe-sha256
+          path: release/PDFToWordConverter.exe.sha256
           retention-days: 30
