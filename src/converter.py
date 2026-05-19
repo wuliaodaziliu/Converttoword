@@ -1,12 +1,18 @@
 """PDF转Word工具 - 转换核心模块"""
 
 import os
+import sys
 import tempfile
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 
 # 打包时设置 Poppler 路径
-_base = os.path.dirname(os.path.abspath(__file__))
+if getattr(sys, 'frozen', False):
+    # exe 打包模式：sys._MEIPASS 是临时解压目录
+    _base = sys._MEIPASS
+else:
+    _base = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
 _poppler_path = os.path.join(_base, "poppler", "Library")
 if os.path.exists(_poppler_path):
     os.environ["POPPLER_PATH"] = _poppler_path
