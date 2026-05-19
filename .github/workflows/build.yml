@@ -27,30 +27,12 @@ jobs:
       - name: Build EXE
         run: |
           pip install pyinstaller
-          pyinstaller build_spec.py --clean 2>&1
+          pyinstaller build_spec.py --name PDFToWordConverter --clean 2>&1
           echo "EXIT CODE: $LASTEXITCODE"
-          echo "=== DIST ROOT ==="
-          Get-ChildItem -Path dist
-          echo "=== DIST BUILD_SPEC ==="
-          Get-ChildItem -Path "dist\build_spec" -Recurse | Format-Table FullName, Length
-          echo "=== RENAME AND MOVE ==="
-          $exe = Get-ChildItem -Path "dist" -Filter "*.exe" -Recurse | Select-Object -First 1
-          if ($exe) {
-            Move-Item -Path $exe.FullName -Destination "dist\PDFToWordConverter.exe" -Force
-            Remove-Item -Path "dist\build_spec" -Recurse -Force -ErrorAction SilentlyContinue
-            echo "Renamed to PDFToWordConverter.exe"
-          }
 
       - name: Upload dist
         uses: actions/upload-artifact@v4
         with:
           name: PDFToWordConverter-dist
           path: dist/
-          retention-days: 30
-
-      - name: Upload exe
-        uses: actions/upload-artifact@v4
-        with:
-          name: PDFToWordConverter-exe
-          path: dist/*.exe
           retention-days: 30
