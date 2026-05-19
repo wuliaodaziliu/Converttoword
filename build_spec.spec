@@ -3,10 +3,18 @@ import os
 
 block_cipher = None
 
-_spec_dir = os.path.dirname(os.path.abspath(globals().get("SPECPATH", os.getcwd())))
-_src_dir = _spec_dir
+_src_dir = os.path.abspath(globals().get("SPECPATH", os.getcwd()))
 _poppler_src = os.path.join(_src_dir, "poppler", "Library")
-_poppler_data = [(_poppler_src, "poppler/Library")] if os.path.exists(_poppler_src) else []
+_required_poppler_tools = [
+    os.path.join(_poppler_src, "bin", "pdfinfo.exe"),
+    os.path.join(_poppler_src, "bin", "pdftoppm.exe"),
+]
+_missing_poppler_tools = [path for path in _required_poppler_tools if not os.path.exists(path)]
+if _missing_poppler_tools:
+    raise FileNotFoundError(
+        "Missing Poppler files required for packaging: " + ", ".join(_missing_poppler_tools)
+    )
+_poppler_data = [(_poppler_src, "poppler/Library")]
 
 a = Analysis(
     ["main.py"],

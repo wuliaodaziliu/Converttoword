@@ -9,18 +9,27 @@ from pathlib import Path
 def _runtime_base() -> Path:
     """返回运行时资源根目录。"""
     if getattr(sys, "frozen", False):
-        # PyInstaller 冻结后优先使用临时解包目录，其次退回到 exe 所在目录。
         return Path(getattr(sys, "_MEIPASS", Path(sys.executable).resolve().parent))
     return Path(__file__).resolve().parents[1]
 
 
-def _poppler_bin() -> Path:
+def _poppler_candidates() -> list[Path]:
     """定位 bundled Poppler 的 bin 目录。"""
-    return _runtime_base() / "poppler" / "Library" / "bin"
+    candidates = [_runtime_base()]
+    if getattr(sys, "frozen", False):
+        candidates.append(Path(sys.executable).resolve().parent)
+    return [base / "poppler" / "Library" / "bin" for base in candidates]
+
+
+def _poppler_bin() -> Path | None:
+    for path in _poppler_candidates():
+        if (path / "pdfinfo.exe").exists() and (path / "pdftoppm.exe").exists():
+            return path
+    return None
 
 
 _poppler_bin_path = _poppler_bin()
-if _poppler_bin_path.exists():
+if _poppler_bin_path:
     os.environ["PATH"] = str(_poppler_bin_path) + os.pathsep + os.environ.get("PATH", "")
 
 from pdf2image import convert_from_path
@@ -43,7 +52,10 @@ class PDFConverter:
         output_path = self.output_dir / f"{output_name}.docx"
 
         try:
-            poppler_path = str(_poppler_bin_path) if _poppler_bin_path.exists() else None
+            poppler_path = str(_poppler_bin_path) if _poppler_bin_path else None
+            if poppler_path is None:
+                checked = "; ".join(str(path) for path in _poppler_candidates())
+                return False, f"未找到内置 Poppler，请重新下载最新版 exe。已检查: {checked}"
             images = convert_from_path(
                 str(pdf_path),
                 dpi=self.dpi,
