@@ -1,3 +1,4 @@
+# -*- mode: python ; coding: utf-8 -*-
 import os
 
 block_cipher = None
@@ -7,14 +8,14 @@ _poppler_src = os.path.join(_src_dir, "poppler", "Library")
 _poppler_data = [(_poppler_src, "poppler/Library")] if os.path.exists(_poppler_src) else []
 
 a = Analysis(
-    ['src/gui.py'],
+    ["main.py"],
     pathex=[],
     binaries=[],
     datas=[
-        ('src', 'src'),
-        ('requirements.txt', '.'),
+        ("src", "src"),
+        ("requirements.txt", "."),
     ] + _poppler_data,
-    hiddenimports=['pdf2image', 'PIL', 'Pillow', 'docx'],
+    hiddenimports=["pdf2image", "PIL", "Pillow", "docx"],
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],
@@ -34,19 +35,19 @@ exe = EXE(
     a.zipfiles,
     a.datas,
     [],
-    name='PDFToWordConverter',
+    name="PDFToWordConverter",
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
-    upx=True,
+    upx=False,
     upx_exclude=[],
     runtime_tmpdir=None,
-    console=True,
+    console=False,
     one_file=False,
     disable_windowed_traceback=False,
     argv_emulation=False,
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
-    icon='icon.ico' if os.path.exists('icon.ico') else None,
+    icon="icon.ico" if os.path.exists("icon.ico") else None,
 )

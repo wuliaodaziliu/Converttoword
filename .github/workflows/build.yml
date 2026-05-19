@@ -9,8 +9,6 @@ on:
 jobs:
   build:
     runs-on: windows-latest
-    env:
-      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
     steps:
       - name: Checkout
@@ -27,12 +25,42 @@ jobs:
       - name: Build EXE
         run: |
           pip install pyinstaller
-          pyinstaller build_spec.py --name PDFToWordConverter --clean 2>&1
-          echo "EXIT CODE: $LASTEXITCODE"
+          pyinstaller build_spec.spec --clean 2>&1
+          Get-ChildItem -Recurse dist
 
-      - name: Upload dist
+      - name: Prepare release bundle
+        shell: pwsh
+        run: |
+          $exeDir = Get-ChildItem -Path "dist" -Directory | Where-Object { Test-Path (Join-Path $_.FullName "PDFToWordConverter.exe") } | Select-Object -First 1
+          if (-not $exeDir) {
+            throw "Could not find PDFToWordConverter.exe under dist/"
+          }
+
+          $releaseDir = "release"
+          New-Item -ItemType Directory -Force -Path $releaseDir | Out-Null
+          $bundleName = "PDFToWordConverter-windows-x64"
+          $bundleRoot = Join-Path $releaseDir $bundleName
+          if (Test-Path $bundleRoot) {
+            Remove-Item $bundleRoot -Recurse -Force
+          }
+
+          Copy-Item -Path $exeDir.FullName -Destination $bundleRoot -Recurse -Force
+          $zipPath = Join-Path $releaseDir "$bundleName.zip"
+          Compress-Archive -Path $bundleRoot -DestinationPath $zipPath -Force
+
+          $hash = Get-FileHash -Algorithm SHA256 $zipPath
+          $hash.Path + "  " + $hash.Hash | Out-File -FilePath "$zipPath.sha256" -Encoding ascii
+
+      - name: Upload release zip
         uses: actions/upload-artifact@v4
         with:
-          name: PDFToWordConverter-dist
-          path: dist/
+          name: PDFToWordConverter-release
+          path: release/PDFToWordConverter-windows-x64.zip
+          retention-days: 30
+
+      - name: Upload sha256
+        uses: actions/upload-artifact@v4
+        with:
+          name: PDFToWordConverter-release-sha256
+          path: release/PDFToWordConverter-windows-x64.zip.sha256
           retention-days: 30

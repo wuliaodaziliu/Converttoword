@@ -6,16 +6,22 @@ import tempfile
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 
-# 打包时设置 Poppler 路径
-if getattr(sys, 'frozen', False):
-    # exe 打包模式：sys._MEIPASS 是临时解压目录
-    _base = sys._MEIPASS
-else:
-    _base = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+def _runtime_base() -> Path:
+    """返回运行时资源根目录。"""
+    if getattr(sys, "frozen", False):
+        # PyInstaller 冻结后优先使用临时解包目录，其次退回到 exe 所在目录。
+        return Path(getattr(sys, "_MEIPASS", Path(sys.executable).resolve().parent))
+    return Path(__file__).resolve().parents[1]
 
-_poppler_path = os.path.join(_base, "poppler", "Library")
-if os.path.exists(_poppler_path):
-    os.environ["POPPLER_PATH"] = _poppler_path
+
+def _poppler_bin() -> Path:
+    """定位 bundled Poppler 的 bin 目录。"""
+    return _runtime_base() / "poppler" / "Library" / "bin"
+
+
+_poppler_bin_path = _poppler_bin()
+if _poppler_bin_path.exists():
+    os.environ["PATH"] = str(_poppler_bin_path) + os.pathsep + os.environ.get("PATH", "")
 
 from pdf2image import convert_from_path
 from PIL import Image
@@ -37,7 +43,13 @@ class PDFConverter:
         output_path = self.output_dir / f"{output_name}.docx"
 
         try:
-            images = convert_from_path(str(pdf_path), dpi=self.dpi, fmt='png')
+            poppler_path = str(_poppler_bin_path) if _poppler_bin_path.exists() else None
+            images = convert_from_path(
+                str(pdf_path),
+                dpi=self.dpi,
+                fmt="png",
+                poppler_path=poppler_path,
+            )
             doc = Document()
             total = len(images)
 
