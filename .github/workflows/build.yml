@@ -29,7 +29,10 @@ jobs:
           pip install pyinstaller
           pyinstaller build_spec.py --clean 2>&1
           echo "EXIT CODE: $LASTEXITCODE"
-          Get-ChildItem -Recurse -Filter "*.exe"
+          echo "=== DIST ROOT ==="
+          Get-ChildItem -Path dist
+          echo "=== DIST BUILD_SPEC ==="
+          Get-ChildItem -Path "dist\build_spec" -Recurse | Format-Table FullName, Length
 
       - name: Upload dist
         uses: actions/upload-artifact@v4
