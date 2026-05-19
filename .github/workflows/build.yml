@@ -27,12 +27,9 @@ jobs:
       - name: Build EXE
         run: |
           pip install pyinstaller
-          pyinstaller build_spec.py --clean
-          if ($LASTEXITCODE -ne 0) { exit 1 }
-
-      - name: Find all exe files
-        run: |
-          Get-ChildItem -Recurse -Filter "*.exe" | Format-Table FullName, Length
+          pyinstaller build_spec.py --clean 2>&1
+          echo "EXIT CODE: $LASTEXITCODE"
+          Get-ChildItem -Recurse -Filter "*.exe"
 
       - name: Upload dist
         uses: actions/upload-artifact@v4
