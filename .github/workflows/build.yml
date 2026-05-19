@@ -31,8 +31,9 @@ jobs:
       - name: Prepare release bundle
         shell: pwsh
         run: |
-          $exeDir = Get-ChildItem -Path "dist" -Directory | Where-Object { Test-Path (Join-Path $_.FullName "PDFToWordConverter.exe") } | Select-Object -First 1
-          if (-not $exeDir) {
+          $exe = Get-ChildItem -Path "dist" -Filter "PDFToWordConverter.exe" -File -Recurse | Select-Object -First 1
+          if (-not $exe) {
+            Get-ChildItem -Recurse dist
             throw "Could not find PDFToWordConverter.exe under dist/"
           }
 
@@ -44,7 +45,7 @@ jobs:
             Remove-Item $bundleRoot -Recurse -Force
           }
 
-          Copy-Item -Path $exeDir.FullName -Destination $bundleRoot -Recurse -Force
+          Copy-Item -Path $exe.Directory.FullName -Destination $bundleRoot -Recurse -Force
           $zipPath = Join-Path $releaseDir "$bundleName.zip"
           Compress-Archive -Path $bundleRoot -DestinationPath $zipPath -Force
 
