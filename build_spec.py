@@ -42,6 +42,7 @@ exe = EXE(
     upx_exclude=[],
     runtime_tmpdir=None,
     console=True,  # DEBUG: 临时开启控制台查看错误
+    one_file=True,
     disable_windowed_traceback=False,
     argv_emulation=False,
     target_arch=None,
