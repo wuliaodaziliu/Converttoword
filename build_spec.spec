@@ -3,7 +3,8 @@ import os
 
 block_cipher = None
 
-_src_dir = os.path.dirname(os.path.abspath(__file__))
+_spec_dir = os.path.dirname(os.path.abspath(globals().get("SPECPATH", os.getcwd())))
+_src_dir = _spec_dir
 _poppler_src = os.path.join(_src_dir, "poppler", "Library")
 _poppler_data = [(_poppler_src, "poppler/Library")] if os.path.exists(_poppler_src) else []
 
